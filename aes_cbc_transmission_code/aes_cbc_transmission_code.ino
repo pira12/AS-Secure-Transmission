@@ -52,7 +52,7 @@ void setup() {
 }
 
 void loop() {
-    const char* msg = "HELLO SNE THIS IS AN EVEN SUPER LONG LONGER LONGER MESSAGE!";
+    const char* msg = "HELLO SNE THIS IS AN EVEN SUPER LONG LONGER LONGER MESSAGE NOW WITH MORE THAN 80 bytes! SO FOR THIS TEST WE ARE USING MORE THAN 2 PACKETS.";
 
     // Build plaintext: magic + message
     uint8_t plaintext[128];
