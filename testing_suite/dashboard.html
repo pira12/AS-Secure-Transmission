@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AS-Secure-Transmission — Results Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:      #080d18;
+    --surface: #0f172a;
+    --card:    #131f35;
+    --card2:   #192844;
+    --border:  rgba(255,255,255,0.07);
+    --text:    #e2e8f0;
+    --muted:   #64748b;
+    --dim:     #334155;
+    --plain:   #64748b;
+    --xor:     #ef4444;
+    --aes:     #3b82f6;
+    --speck:   #22c55e;
+    --chacha:  #f59e0b;
+    --font:    'Space Grotesk', system-ui, sans-serif;
+    --mono:    'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    padding: 2rem 2rem 4rem;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header .title-block h1 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #f8fafc;
+  }
+  header .title-block p {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin-top: 4px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .status-pill .dot { width:7px; height:7px; border-radius:50%; background:#22c55e; }
+  .status-pill.sample .dot { background: #f59e0b; }
+
+  /* ── Algorithm toggles ── */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 2rem;
+    align-items: center;
+  }
+  .controls-label {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 4px;
+  }
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .toggle.active { color: var(--text); border-color: rgba(255,255,255,0.18); }
+  .toggle .dot { width:8px; height:8px; border-radius:50%; }
+
+  /* ── KPI cards ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .kpi .kpi-label {
+    font-size: 0.65rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 8px;
+  }
+  .kpi .kpi-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .kpi .kpi-unit {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 5px;
+    font-family: var(--mono);
+  }
+  .kpi .kpi-winner {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-family: var(--mono);
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 6px;
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+  }
+
+  /* ── Chart grid ── */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+  }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-card.radar-card { display:flex; flex-direction:column; align-items:center; }
+
+  .chart-title {
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+  .chart-wrap { position: relative; }
+
+  .legend-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+  .legend-item { display:flex; align-items:center; gap:5px; }
+  .legend-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  /* ── Full results table ── */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+  th {
+    font-family: var(--mono);
+    font-size: 0.63rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    white-space: nowrap;
+  }
+  th:first-child { text-align:left; }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: #94a3b8;
+  }
+  td:first-child { text-align:left; color:var(--text); font-family:var(--font); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── Security note ── */
+  .security-note {
+    background: rgba(239,68,68,0.07);
+    border: 1px solid rgba(239,68,68,0.22);
+    border-left: 3px solid #ef4444;
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.76rem;
+    color: #fca5a5;
+    margin-bottom: 1.5rem;
+    font-family: var(--mono);
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    color: var(--dim);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  footer code { color: var(--muted); }
+
+  .no-data {
+    text-align: center;
+    padding: 2rem;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>AS-Secure-Transmission</h1>
+    <p>Arduino Nano · ATmega328P @ 16 MHz · RF 433 MHz ASK · 2000 bps · 16-byte messages</p>
+  </div>
+  <div id="dataStatus"></div>
+</header>
+
+<div class="controls">
+  <span class="controls-label">Show:</span>
+  <div id="toggles"></div>
+</div>
+
+<div class="kpi-row" id="kpiRow"></div>
+
+<div class="chart-grid">
+  <div class="chart-card">
+    <div class="chart-title">01 — Encrypt / decrypt latency (µs)</div>
+    <div class="legend-row" id="legLat"></div>
+    <div class="chart-wrap" style="height:240px"><canvas id="cLatency"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">02 — Packet loss &amp; integrity failure (%)</div>
+    <div class="legend-row" id="legRel"></div>
+    <div class="chart-wrap" style="height:240px"><canvas id="cReliability"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">03 — Effective throughput vs raw link (bps)</div>
+    <div class="chart-wrap" style="height:220px"><canvas id="cThroughput"></canvas></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">04 — Flash &amp; SRAM footprint (bytes)</div>
+    <div class="chart-wrap" style="height:220px"><canvas id="cMemory"></canvas></div>
+  </div>
+  <div class="chart-card wide">
+    <div class="chart-title">05 — Encrypt latency over test window (rolling average)</div>
+    <div class="legend-row" id="legTs"></div>
+    <div class="chart-wrap" style="height:200px"><canvas id="cTimeseries"></canvas></div>
+  </div>
+  <div class="chart-card radar-card wide">
+    <div class="chart-title">06 — Performance radar (normalised — higher = better)</div>
+    <div class="chart-wrap" style="height:340px; width:340px; max-width:100%">
+      <canvas id="cRadar"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="chart-title">Full results table</div>
+  <table id="resultsTable"></table>
+</div>
+
+<div class="security-note">
+  ⚠ XOR with a static repeating key is intentionally broken cryptography — included only as a negative baseline.
+  Identical plaintext always produces identical ciphertext. Key recovery requires a single known-plaintext pair (C XOR P = K).
+  Never use static-key XOR for real data protection.
+</div>
+
+<footer>
+  Dashboard loads <code>results/figures/results.json</code> automatically after running
+  <code>python python/analyze.py</code> · AS-Secure-Transmission Testing Suite
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ============================================================
+   SAMPLE DATA — automatically replaced when results.json loads
+   ============================================================ */
+const SAMPLE_DATA = {
+  algorithms: [
+    {
+      id:"PLAIN", label:"Plaintext (baseline)", color:"#64748b",
+      enc_mean_us:0, enc_std_us:0, dec_mean_us:0, dec_std_us:0,
+      sent:120, recvd:118, loss_pct:1.7, integrity_pct:100,
+      eff_tput_bps:1984,
+      flash:4230, sram:312,
+      enc_samples:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      dec_samples:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    },
+    {
+      id:"XOR", label:"XOR (static key)", color:"#ef4444",
+      enc_mean_us:3, enc_std_us:0.4, dec_mean_us:3, dec_std_us:0.4,
+      sent:120, recvd:117, loss_pct:2.5, integrity_pct:100,
+      eff_tput_bps:1983,
+      flash:4692, sram:330,
+      enc_samples:[3,3,2,3,3,3,3,2,3,3,3,3,3,2,3,3,3,3,2,3],
+      dec_samples:[3,3,2,3,3,3,3,2,3,3,3,3,3,2,3,3,3,3,2,3],
+    },
+    {
+      id:"AES128", label:"AES-128 ECB", color:"#3b82f6",
+      enc_mean_us:315, enc_std_us:8.2, dec_mean_us:312, dec_std_us:7.8,
+      sent:120, recvd:119, loss_pct:0.8, integrity_pct:99.2,
+      eff_tput_bps:1958,
+      flash:8104, sram:542,
+      enc_samples:[312,318,315,311,320,314,316,310,315,317,313,315,314,319,315,316,312,318,314,315],
+      dec_samples:[310,315,312,309,318,311,313,308,312,314,311,312,311,316,312,313,310,315,311,312],
+    },
+    {
+      id:"SPECK", label:"SPECK-64/128", color:"#22c55e",
+      enc_mean_us:58, enc_std_us:2.1, dec_mean_us:60, dec_std_us:2.3,
+      sent:120, recvd:118, loss_pct:1.7, integrity_pct:100,
+      eff_tput_bps:1976,
+      flash:5680, sram:458,
+      enc_samples:[58,57,60,58,59,57,58,60,58,57,59,58,60,57,58,59,58,57,60,58],
+      dec_samples:[60,59,62,60,61,59,60,62,60,59,61,60,62,59,60,61,60,59,62,60],
+    },
+    {
+      id:"CHACHA20", label:"ChaCha20", color:"#f59e0b",
+      enc_mean_us:198, enc_std_us:5.1, dec_mean_us:197, dec_std_us:5.0,
+      sent:120, recvd:118, loss_pct:1.7, integrity_pct:99.6,
+      eff_tput_bps:1969,
+      flash:7200, sram:464,
+      enc_samples:[198,200,196,199,197,201,198,195,199,200,197,198,199,201,198,197,200,196,199,198],
+      dec_samples:[197,199,195,198,196,200,197,194,198,199,196,197,198,200,197,196,199,195,198,197],
+    },
+  ]
+};
+
+/* ============================================================
+   Data loading — tries results/figures/results.json first
+   ============================================================ */
+let DATA = SAMPLE_DATA;
+let isSampleData = true;
+
+async function loadData() {
+  try {
+    const r = await fetch('results/figures/results.json');
+    if (!r.ok) throw new Error('not found');
+    const json = await r.json();
+    if (json.algorithms && json.algorithms.length) {
+      DATA = json;
+      isSampleData = false;
+    }
+  } catch(_) { /* keep sample data */ }
+
+  const pill = document.getElementById('dataStatus');
+  if (isSampleData) {
+    pill.innerHTML = '<span class="status-pill sample"><span class="dot"></span>Sample data — run analyze.py to load real results</span>';
+  } else {
+    pill.innerHTML = '<span class="status-pill"><span class="dot"></span>Live results loaded</span>';
+  }
+
+  init();
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+let visible = new Set();
+let charts  = {};
+
+const vis = () => DATA.algorithms.filter(a => visible.has(a.id));
+
+/* ============================================================
+   Toggles
+   ============================================================ */
+function buildToggles() {
+  visible = new Set(DATA.algorithms.map(a => a.id));
+  const c = document.getElementById('toggles');
+  c.innerHTML = '';
+  DATA.algorithms.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'toggle active';
+    el.dataset.id = a.id;
+    el.innerHTML = `<span class="dot" style="background:${a.color}"></span>${a.label}`;
+    el.onclick = () => {
+      if (visible.has(a.id)) { visible.delete(a.id); el.classList.remove('active'); }
+      else                   { visible.add(a.id);    el.classList.add('active'); }
+      refresh();
+    };
+    c.appendChild(el);
+  });
+}
+
+/* ============================================================
+   KPI cards
+   ============================================================ */
+function buildKPI() {
+  const row = document.getElementById('kpiRow');
+  row.innerHTML = '';
+  const v = vis();
+  if (!v.length) return;
+
+  const withEnc    = v.filter(a => a.enc_mean_us > 0);
+  const fastest    = withEnc.sort((a,b) => a.enc_mean_us - b.enc_mean_us)[0];
+  const bestLoss   = [...v].filter(a=>a.loss_pct!=null).sort((a,b)=>a.loss_pct-b.loss_pct)[0];
+  const bestTput   = [...v].filter(a=>a.eff_tput_bps!=null).sort((a,b)=>b.eff_tput_bps-a.eff_tput_bps)[0];
+  const leastFlash = [...v].filter(a=>a.flash).sort((a,b)=>a.flash-b.flash)[0];
+  const totalSent  = v.reduce((s,a)=>s+a.sent,0);
+
+  const cards = [
+    { label:'Fastest encrypt', value: fastest ? fastest.enc_mean_us.toFixed(1) : '0',
+      unit:'µs', winner: fastest?.label },
+    { label:'Lowest packet loss', value: bestLoss ? bestLoss.loss_pct.toFixed(1) : '—',
+      unit:'%', winner: bestLoss?.label },
+    { label:'Best throughput', value: bestTput ? bestTput.eff_tput_bps.toFixed(0) : '—',
+      unit:'bps', winner: bestTput?.label },
+    { label:'Smallest flash', value: leastFlash?.flash ? leastFlash.flash.toLocaleString() : '—',
+      unit:'bytes', winner: leastFlash?.label },
+    { label:'Total packets sent', value: totalSent.toLocaleString(),
+      unit:'packets', winner: null },
+  ];
+
+  cards.forEach(c => {
+    row.innerHTML += `<div class="kpi">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.value}</div>
+      <div class="kpi-unit">${c.unit}</div>
+      ${c.winner ? `<div class="kpi-winner">${c.winner}</div>` : ''}
+    </div>`;
+  });
+}
+
+/* ============================================================
+   Chart helpers
+   ============================================================ */
+const BASE_OPTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { mode: 'index', intersect: false,
+      backgroundColor: '#192844', borderColor: 'rgba(255,255,255,0.1)',
+      borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#94a3b8',
+      padding: 10, cornerRadius: 6 }
+  },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,0.04)' },
+         ticks: { color: '#64748b', font:{ family:"'JetBrains Mono'", size:10 }}},
+    y: { grid: { color: 'rgba(255,255,255,0.04)' },
+         ticks: { color: '#64748b', font:{ family:"'JetBrains Mono'", size:10 }}},
+  }
+};
+
+function killChart(id) {
+  if (charts[id]) { charts[id].destroy(); charts[id] = null; }
+}
+
+function legend(elId, v) {
+  document.getElementById(elId).innerHTML =
+    v.map(a=>`<span class="legend-item"><span class="legend-dot" style="background:${a.color}"></span>${a.label}</span>`).join('');
+}
+
+/* ============================================================
+   01 Latency bar
+   ============================================================ */
+function drawLatency() {
+  killChart('lat');
+  const v = vis();
+  legend('legLat', v);
+  charts['lat'] = new Chart(document.getElementById('cLatency'), {
+    type: 'bar',
+    data: {
+      labels: v.map(a=>a.label),
+      datasets: [
+        { label:'Encrypt (µs)', data: v.map(a=>a.enc_mean_us),
+          backgroundColor: v.map(a=>a.color+'cc'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 },
+        { label:'Decrypt (µs)', data: v.map(a=>a.dec_mean_us),
+          backgroundColor: v.map(a=>a.color+'44'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 }
+      ]
+    },
+    options: { ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins,
+        tooltip:{ ...BASE_OPTS.plugins.tooltip,
+          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} µs` }}},
+      scales:{ ...BASE_OPTS.scales,
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#64748b'}}}}
+  });
+}
+
+/* ============================================================
+   02 Reliability bar
+   ============================================================ */
+function drawReliability() {
+  killChart('rel');
+  const v = vis();
+  legend('legRel', v);
+  charts['rel'] = new Chart(document.getElementById('cReliability'), {
+    type: 'bar',
+    data: {
+      labels: v.map(a=>a.label),
+      datasets: [
+        { label:'Packet loss %', data: v.map(a=>a.loss_pct),
+          backgroundColor: v.map(a=>a.color+'aa'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 },
+        { label:'Integrity fail %', data: v.map(a=>a.integrity_pct!=null ? 100-a.integrity_pct : null),
+          backgroundColor: v.map(a=>a.color+'33'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 }
+      ]
+    },
+    options: { ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins,
+        tooltip:{ ...BASE_OPTS.plugins.tooltip,
+          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y!=null?ctx.parsed.y.toFixed(2):'n/a'}%` }}},
+      scales:{ ...BASE_OPTS.scales,
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'%',color:'#64748b'}}}}
+  });
+}
+
+/* ============================================================
+   03 Throughput bar
+   ============================================================ */
+function drawThroughput() {
+  killChart('tput');
+  const v = vis();
+  charts['tput'] = new Chart(document.getElementById('cThroughput'), {
+    type: 'bar',
+    data: {
+      labels: v.map(a=>a.label),
+      datasets:[{
+        label:'Effective throughput (bps)',
+        data: v.map(a=>a.eff_tput_bps),
+        backgroundColor: v.map(a=>a.color+'bb'),
+        borderColor: v.map(a=>a.color),
+        borderWidth:1, borderRadius:4
+      }]
+    },
+    options: { ...BASE_OPTS,
+      scales:{ ...BASE_OPTS.scales,
+        y:{ ...BASE_OPTS.scales.y, min:1700,
+            title:{display:true,text:'bps',color:'#64748b'}}}}
+  });
+}
+
+/* ============================================================
+   04 Memory bar
+   ============================================================ */
+function drawMemory() {
+  killChart('mem');
+  const v = vis().filter(a=>a.flash);
+  const FLASH_MAX=32768, SRAM_MAX=2048;
+  charts['mem'] = new Chart(document.getElementById('cMemory'), {
+    type: 'bar',
+    data: {
+      labels: v.map(a=>a.label),
+      datasets:[
+        { label:'Flash (bytes)', data: v.map(a=>a.flash),
+          backgroundColor: v.map(a=>a.color+'cc'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 },
+        { label:'SRAM (bytes)', data: v.map(a=>a.sram),
+          backgroundColor: v.map(a=>a.color+'44'), borderColor: v.map(a=>a.color),
+          borderWidth:1, borderRadius:3 }
+      ]
+    },
+    options:{ ...BASE_OPTS,
+      plugins:{ ...BASE_OPTS.plugins,
+        tooltip:{ ...BASE_OPTS.plugins.tooltip,
+          callbacks:{ afterLabel: ctx=>{
+            if(ctx.datasetIndex===0) return `  ${(ctx.parsed.y/FLASH_MAX*100).toFixed(1)}% of Flash`;
+            return `  ${(ctx.parsed.y/SRAM_MAX*100).toFixed(1)}% of SRAM`;
+          }}}}}
+  });
+}
+
+/* ============================================================
+   05 Timeseries line
+   ============================================================ */
+function drawTimeseries() {
+  killChart('ts');
+  const v = vis().filter(a=>a.enc_samples&&a.enc_samples.length>0);
+  if(!v.length) return;
+  legend('legTs', v);
+
+  const maxLen = Math.max(...v.map(a=>a.enc_samples.length));
+  const labels = Array.from({length:maxLen},(_,i)=>(i*0.5).toFixed(1)+'s');
+
+  function rolling(arr, w=4) {
+    return arr.map((_,i)=>{
+      const sl = arr.slice(Math.max(0,i-w+1),i+1);
+      return sl.reduce((a,b)=>a+b,0)/sl.length;
+    });
+  }
+
+  charts['ts'] = new Chart(document.getElementById('cTimeseries'), {
+    type:'line',
+    data:{
+      labels,
+      datasets: v.map(a=>({
+        label: a.label,
+        data: rolling(a.enc_samples),
+        borderColor: a.color,
+        backgroundColor:'transparent',
+        borderWidth:2,
+        pointRadius:1.5,
+        pointHoverRadius:4,
+        tension:0.35,
+      }))
+    },
+    options:{ ...BASE_OPTS,
+      plugins:{ ...BASE_OPTS.plugins, legend:{display:false},
+        tooltip:{ ...BASE_OPTS.plugins.tooltip,
+          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} µs` }}},
+      scales:{ ...BASE_OPTS.scales,
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#64748b'}}}}
+  });
+}
+
+/* ============================================================
+   06 Radar
+   ============================================================ */
+function drawRadar() {
+  killChart('radar');
+  const v = vis();
+  if(v.length < 2) return;
+
+  const eps = 1e-9;
+  const encVals  = v.map(a=>a.enc_mean_us);
+  const decVals  = v.map(a=>a.dec_mean_us);
+  const tputVals = v.map(a=>a.eff_tput_bps||0);
+  const relVals  = v.map(a=>a.integrity_pct!=null?a.integrity_pct:100);
+
+  const norm = (arr, higher_is_better) => {
+    const mn = Math.min(...arr), mx = Math.max(...arr);
+    return arr.map(v => {
+      const n = (v - mn) / (mx - mn + eps);
+      return higher_is_better ? n : 1 - n;
+    });
+  };
+
+  const nEnc  = norm(encVals,  false);
+  const nDec  = norm(decVals,  false);
+  const nTput = norm(tputVals, true);
+  const nRel  = norm(relVals,  true);
+
+  charts['radar'] = new Chart(document.getElementById('cRadar'), {
+    type:'radar',
+    data:{
+      labels:['Encrypt Speed','Decrypt Speed','Throughput','Reliability'],
+      datasets: v.map((a,i)=>({
+        label: a.label,
+        data: [nEnc[i], nDec[i], nTput[i], nRel[i]],
+        borderColor: a.color,
+        backgroundColor: a.color+'1a',
+        borderWidth: 2,
+        pointBackgroundColor: a.color,
+        pointRadius: 3,
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:true, position:'bottom',
+          labels:{ color:'#94a3b8', font:{family:"'JetBrains Mono'",size:11},
+                   boxWidth:10, padding:16 }},
+        tooltip:{ backgroundColor:'#192844', borderColor:'rgba(255,255,255,0.1)',
+          borderWidth:1, titleColor:'#f8fafc', bodyColor:'#94a3b8',
+          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${(ctx.parsed.r*100).toFixed(0)}%` }}
+      },
+      scales:{
+        r:{
+          min:0, max:1,
+          backgroundColor:'#0f172a',
+          grid:{ color:'rgba(255,255,255,0.07)' },
+          angleLines:{ color:'rgba(255,255,255,0.07)' },
+          pointLabels:{ color:'#cbd5e1', font:{family:"'Space Grotesk'",size:12} },
+          ticks:{ display:false }
+        }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   Results table
+   ============================================================ */
+function buildTable() {
+  const v = vis();
+  const t = document.getElementById('resultsTable');
+  if(!v.length){ t.innerHTML='<tr><td class="no-data">No algorithms selected.</td></tr>'; return; }
+
+  t.innerHTML = `
+    <thead><tr>
+      <th>Algorithm</th>
+      <th>Enc µs</th><th>σ enc</th>
+      <th>Dec µs</th><th>σ dec</th>
+      <th>Sent</th><th>Recv'd</th>
+      <th>Loss %</th><th>Integrity %</th>
+      <th>Tput bps</th>
+      <th>Flash B</th><th>SRAM B</th>
+    </tr></thead>
+    <tbody>
+      ${v.map(a=>`<tr>
+        <td>
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;
+                background:${a.color};margin-right:8px;vertical-align:middle;"></span>
+          ${a.label}
+        </td>
+        <td>${a.enc_mean_us>0 ? a.enc_mean_us.toFixed(1) : '—'}</td>
+        <td>${a.enc_std_us>0  ? a.enc_std_us.toFixed(1)  : '—'}</td>
+        <td>${a.dec_mean_us>0 ? a.dec_mean_us.toFixed(1) : '—'}</td>
+        <td>${a.dec_std_us>0  ? a.dec_std_us.toFixed(1)  : '—'}</td>
+        <td>${a.sent}</td>
+        <td>${a.recvd}</td>
+        <td>${a.loss_pct!=null   ? a.loss_pct.toFixed(1)+'%'    : '—'}</td>
+        <td>${a.integrity_pct!=null ? a.integrity_pct.toFixed(1)+'%' : '—'}</td>
+        <td>${a.eff_tput_bps!=null ? a.eff_tput_bps.toFixed(0)  : '—'}</td>
+        <td>${a.flash ? a.flash.toLocaleString() : '—'}</td>
+        <td>${a.sram  ? a.sram.toLocaleString()  : '—'}</td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+/* ============================================================
+   Refresh + init
+   ============================================================ */
+function refresh() {
+  buildKPI();
+  drawLatency();
+  drawReliability();
+  drawThroughput();
+  drawMemory();
+  drawTimeseries();
+  drawRadar();
+  buildTable();
+}
+
+function init() {
+  buildToggles();
+  refresh();
+}
+
+loadData();
+</script>
+</body>
+</html>
