@@ -9,6 +9,10 @@ uint8_t iv[]  = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}; // static, same on bot
 
 const uint8_t MAGIC[] = {0xDE, 0xAD, 0xBE, 0xEF};
 
+// Max ciphertext per packet: 60 bytes total - 2 bytes header = 58 bytes
+// Round down to block boundary: 48 bytes (3 blocks) per packet
+#define MAX_CIPHER_PER_PACKET 48
+
 uint8_t pkcs7_pad(uint8_t* buf, const char* msg, uint8_t msglen) {
     uint8_t padded_len = ((msglen / 16) + 1) * 16;
     memcpy(buf, msg, msglen);
@@ -48,24 +52,29 @@ void setup() {
 }
 
 void loop() {
-    const char* msg = "HELLO SNE THIS IS A LONGER MESSAGE!";
-    uint8_t plaintext[64];
+    const char* msg = "HELLO SNE THIS IS AN EVEN SUPER LONG LONGER LONGER MESSAGE!";
+
+    // Build plaintext: magic + message
+    uint8_t plaintext[128];
     memcpy(plaintext, MAGIC, 4);
     memcpy(plaintext + 4, msg, strlen(msg));
     uint8_t plain_len = 4 + strlen(msg);
 
-    uint8_t padded[64];
+    // Pad to block boundary
+    uint8_t padded[128];
     uint8_t padded_len = pkcs7_pad(padded, (char*)plaintext, plain_len);
 
-    // Print the plaintext blocks before encryption
     Serial.println("--- Plaintext blocks ---");
-    Serial.print("Total length after padding: ");
-    Serial.print(padded_len);
-    Serial.println(" bytes");
-    for (uint8_t i = 0; i < padded_len; i += 16)
-        print_block(&padded[i], i / 16, true);
+    for (uint8_t i = 0; i < padded_len; i += 16) {
+        Serial.print("  Block "); Serial.print(i/16); Serial.print(": ");
+        for (uint8_t j = 0; j < 16; j++) {
+            char c = (char)padded[i+j];
+            Serial.print(c >= 32 && c < 127 ? c : '.');
+        }
+        Serial.println();
+    }
 
-    // Use a copy so the static iv is never modified
+    // CBC encrypt entire padded plaintext at once
     uint8_t iv_copy[16];
     memcpy(iv_copy, iv, 16);
 
@@ -79,24 +88,36 @@ void loop() {
     }
     unsigned long t_enc = micros() - t_start;
 
-    // Print the ciphertext blocks after encryption
-    Serial.println("--- Ciphertext blocks (hex) ---");
-    for (uint8_t i = 0; i < padded_len; i += 16)
-        print_block(&padded[i], i / 16, false);
+    // Split ciphertext into packets
+    uint8_t total_packets = (padded_len + MAX_CIPHER_PER_PACKET - 1) / MAX_CIPHER_PER_PACKET;
 
-    // Warn if message exceeds one RadioHead packet
-    if (padded_len > 60) {
-        Serial.println("WARNING: payload exceeds 60 bytes, truncating!");
-        padded_len = 60;
+    Serial.print("Total ciphertext bytes: "); Serial.println(padded_len);
+    Serial.print("Splitting into "); Serial.print(total_packets); Serial.println(" packets");
+
+    for (uint8_t pkt = 0; pkt < total_packets; pkt++) {
+        uint8_t offset = pkt * MAX_CIPHER_PER_PACKET;
+        uint8_t chunk_len = min((uint8_t)MAX_CIPHER_PER_PACKET, (uint8_t)(padded_len - offset));
+
+        // Packet format: [pkt_index (1)] [total_packets (1)] [ciphertext chunk]
+        uint8_t packet[60];
+        packet[0] = pkt;
+        packet[1] = total_packets;
+        memcpy(packet + 2, padded + offset, chunk_len);
+        uint8_t packet_len = 2 + chunk_len;
+
+        Serial.print("  Sending packet "); Serial.print(pkt + 1);
+        Serial.print("/"); Serial.print(total_packets);
+        Serial.print(" ("); Serial.print(chunk_len); Serial.println(" bytes ciphertext)");
+
+        for (uint8_t r = 0; r < 3; r++) {
+            driver.send(packet, packet_len);
+            driver.waitPacketSent();
+            delay(100);
+        }
+        delay(500); // gap between packets so RX can process
     }
 
-    for (uint8_t i = 0; i < 3; i++) {
-        driver.send(padded, padded_len);
-        driver.waitPacketSent();
-        delay(100);
-    }
-
-    Serial.print("Sent (3x) | Encrypt time (us): ");
+    Serial.print("Done. Encrypt time (us): ");
     Serial.println(t_enc);
     delay(6000);
 }
