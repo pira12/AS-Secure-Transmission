@@ -153,11 +153,11 @@ Also prints three formatted tables (latency, reliability, throughput) to the ter
 #### 4. Open the dashboard
 
 ```bash
-# From inside testing_suite/
-xdg-open dashboard.html    # Linux
-open dashboard.html        # macOS
-start dashboard.html       # Windows
+python -m http.server 80
 ```
+
+Then navigate in the browser to: http://localhost/dashboard.html
+
 
 The dashboard automatically loads `results/figures/results.json` via `fetch()`. If no real data is available yet, it falls back to sample data so you can preview the layout. A status pill in the top-right corner shows which mode is active.
 

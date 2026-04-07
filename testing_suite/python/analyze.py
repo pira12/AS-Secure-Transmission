@@ -167,7 +167,7 @@ def print_tables(stats):
     lat.columns = ["Algorithm", "Enc mean (µs)", "Enc σ", "Dec mean (µs)", "Dec σ"]
     lat = lat.dropna(subset=["Enc mean (µs)"])
     for col in lat.columns[1:]:
-        lat[col] = lat[col].map(lambda x: fmt(x))
+        lat[col] = lat[col].map(lambda x: fmt(x)).astype(str)  # ← add .astype(str)
     print("\nTable 1 — Enc/Dec latency (16-byte message)\n")
     if HAS_TABULATE:
         print(tabulate(lat, headers="keys", tablefmt="rounded_outline", showindex=False))
@@ -178,7 +178,7 @@ def print_tables(stats):
     rel = stats[["label","sent","recvd","loss_pct","integrity_pct"]].copy()
     rel.columns = ["Algorithm", "Sent", "Recv'd", "Loss %", "Integrity %"]
     for col in ["Loss %", "Integrity %"]:
-        rel[col] = rel[col].map(lambda x: f"{x:.1f}%" if pd.notna(x) else "—")
+        rel[col] = rel[col].map(lambda x: f"{x:.1f}%" if pd.notna(x) else "—").astype(str)  # ← add .astype(str)
     print("\nTable 2 — Transmission reliability\n")
     if HAS_TABULATE:
         print(tabulate(rel, headers="keys", tablefmt="rounded_outline", showindex=False))
@@ -188,7 +188,8 @@ def print_tables(stats):
     # Throughput
     tput = stats[["label","eff_tput_bps"]].copy()
     tput.columns = ["Algorithm", "Effective throughput (bps)"]
-    tput.iloc[:, 1] = tput.iloc[:, 1].map(lambda x: fmt(x, 0))
+    tput["Effective throughput (bps)"] = tput["Effective throughput (bps)"].map(
+        lambda x: fmt(x, 0)).astype(str)  # ← use explicit column name + .astype(str)
     print("\nTable 3 — Effective throughput (2000 bps raw link)\n")
     if HAS_TABULATE:
         print(tabulate(tput, headers="keys", tablefmt="rounded_outline", showindex=False))
