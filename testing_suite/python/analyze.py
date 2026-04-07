@@ -60,28 +60,29 @@ ALGO_LABELS = {
     "CHACHA20":  "ChaCha20",
 }
 COLORS = {
-    "PLAIN":     "#64748b",
-    "XOR":       "#ef4444",
-    "AES128":    "#3b82f6",
-    "AES128CBC": "#a855f7",
-    "SPECK":     "#22c55e",
-    "CHACHA20":  "#f59e0b",
+    "PLAIN":     "#6B7280",
+    "XOR":       "#DC2626",
+    "AES128":    "#2563EB",
+    "AES128CBC": "#7C3AED",
+    "SPECK":     "#16A34A",
+    "CHACHA20":  "#B45309",
 }
 
-DARK = {
-    "figure.facecolor": "#0f172a",
-    "axes.facecolor":   "#1e293b",
-    "axes.edgecolor":   "#334155",
-    "axes.labelcolor":  "#e2e8f0",
-    "axes.titlecolor":  "#f8fafc",
-    "xtick.color":      "#94a3b8",
-    "ytick.color":      "#94a3b8",
-    "text.color":       "#e2e8f0",
-    "grid.color":       "#334155",
+# UvA-styled light theme for matplotlib figures
+LIGHT = {
+    "figure.facecolor": "#FFFFFF",
+    "axes.facecolor":   "#FAFAFA",
+    "axes.edgecolor":   "#CCCCCC",
+    "axes.labelcolor":  "#1A1A1A",
+    "axes.titlecolor":  "#1A1A1A",
+    "xtick.color":      "#5A5A5A",
+    "ytick.color":      "#5A5A5A",
+    "text.color":       "#1A1A1A",
+    "grid.color":       "#E0E0E0",
     "grid.linestyle":   "--",
-    "grid.alpha":       0.5,
-    "legend.facecolor": "#1e293b",
-    "legend.edgecolor": "#334155",
+    "grid.alpha":       0.8,
+    "legend.facecolor": "#FFFFFF",
+    "legend.edgecolor": "#CCCCCC",
     "font.family":      "monospace",
     "font.size":        10,
 }
@@ -204,7 +205,7 @@ def print_tables(stats):
 # ---------------------------------------------------------------------------
 
 def _style():
-    plt.rcParams.update(DARK)
+    plt.rcParams.update(LIGHT)
 
 def fig_latency_bar(stats, outdir):
     _style()
@@ -213,17 +214,17 @@ def fig_latency_bar(stats, outdir):
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
     x     = np.arange(len(df))
     w     = 0.35
     clrs  = [COLORS[a] for a in df["algo"]]
 
     b1 = ax.bar(x - w/2, df["enc_mean_us"], w, yerr=df["enc_std_us"],
                 color=clrs, alpha=0.85, label="Encrypt",
-                capsize=5, error_kw={"ecolor":"#f8fafc","elinewidth":1.5})
+                capsize=5, error_kw={"ecolor":"#333333","elinewidth":1.5})
     b2 = ax.bar(x + w/2, df["dec_mean_us"], w, yerr=df["dec_std_us"],
                 color=clrs, alpha=0.45, label="Decrypt",
-                capsize=5, error_kw={"ecolor":"#f8fafc","elinewidth":1.5})
+                capsize=5, error_kw={"ecolor":"#333333","elinewidth":1.5})
 
     ax.set_xticks(x)
     ax.set_xticklabels([ALGO_LABELS[a] for a in df["algo"]], fontsize=9)
@@ -239,7 +240,7 @@ def fig_latency_bar(stats, outdir):
             ax.annotate(f"{h:.0f}",
                         xy=(rect.get_x() + rect.get_width()/2, h),
                         xytext=(0, 4), textcoords="offset points",
-                        ha="center", va="bottom", fontsize=8, color="#f8fafc")
+                        ha="center", va="bottom", fontsize=8, color="#1A1A1A")
 
     plt.tight_layout()
     path = os.path.join(outdir, "01_latency_bar.png")
@@ -254,7 +255,7 @@ def fig_latency_dist(tx, outdir):
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
     data   = [tx[tx["algo"] == a]["enc_us"].dropna().values for a in algos]
     labels = [ALGO_LABELS[a] for a in algos]
     clrs   = [COLORS[a] for a in algos]
@@ -264,7 +265,7 @@ def fig_latency_dist(tx, outdir):
     for i, pc in enumerate(parts["bodies"]):
         pc.set_facecolor(clrs[i]); pc.set_alpha(0.7)
     for key in ("cmedians","cbars","cmins","cmaxes"):
-        parts[key].set_color("#f8fafc")
+        parts[key].set_color("#333333")
 
     ax.set_xticks(range(len(labels)))
     ax.set_xticklabels(labels, fontsize=9)
@@ -286,7 +287,7 @@ def fig_packet_loss(stats, outdir):
         return
 
     fig, ax = plt.subplots(figsize=(8, 4))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
     labels = [ALGO_LABELS[a] for a in df["algo"]]
     clrs   = [COLORS[a] for a in df["algo"]]
 
@@ -298,7 +299,7 @@ def fig_packet_loss(stats, outdir):
 
     for bar, val in zip(bars, df["loss_pct"]):
         ax.text(val + 0.15, bar.get_y() + bar.get_height()/2,
-                f"{val:.1f}%", va="center", fontsize=9, color="#f8fafc")
+                f"{val:.1f}%", va="center", fontsize=9, color="#1A1A1A")
 
     plt.tight_layout()
     path = os.path.join(outdir, "03_packet_loss.png")
@@ -313,12 +314,12 @@ def fig_throughput(stats, outdir):
         return
 
     fig, ax = plt.subplots(figsize=(10, 5))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
     clrs = [COLORS[a] for a in df["algo"]]
 
     ax.barh([ALGO_LABELS[a] for a in df["algo"]], df["eff_tput_bps"],
             color=clrs, alpha=0.85)
-    ax.axvline(2000, color="#f8fafc", linestyle="--", linewidth=1.5,
+    ax.axvline(2000, color="#BC0031", linestyle="--", linewidth=1.5,
                label="Raw link (2000 bps)")
     ax.set_xlabel("Effective Throughput (bps)")
     ax.set_title("Effective Throughput per Algorithm\n(enc overhead + radio transmission)", fontsize=12)
@@ -327,7 +328,7 @@ def fig_throughput(stats, outdir):
     ax.legend()
 
     for i, val in enumerate(df["eff_tput_bps"]):
-        ax.text(val + 5, i, f"{val:.0f}", va="center", fontsize=9, color="#f8fafc")
+        ax.text(val + 5, i, f"{val:.0f}", va="center", fontsize=9, color="#1A1A1A")
 
     plt.tight_layout()
     path = os.path.join(outdir, "04_throughput.png")
@@ -342,7 +343,7 @@ def fig_timeseries(tx, outdir):
         return
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
 
     for algo in algos:
         sub = tx[tx["algo"] == algo].sort_values("wall_time_s")
@@ -384,16 +385,16 @@ def fig_radar(stats, outdir):
     angles = [n / float(N) * 2 * np.pi for n in range(N)] + [0]
 
     fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
-    fig.patch.set_facecolor("#0f172a")
-    ax.set_facecolor("#1e293b")
+    fig.patch.set_facecolor("#FFFFFF")
+    ax.set_facecolor("#FAFAFA")
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(metrics, color="#e2e8f0", fontsize=10)
+    ax.set_xticklabels(metrics, color="#1A1A1A", fontsize=10)
     ax.set_yticks([0.25, 0.5, 0.75, 1.0])
-    ax.set_yticklabels(["25%","50%","75%","100%"], color="#64748b", fontsize=8)
-    ax.yaxis.grid(color="#334155", linestyle="--", alpha=0.5)
-    ax.spines["polar"].set_color("#334155")
+    ax.set_yticklabels(["25%","50%","75%","100%"], color="#888888", fontsize=8)
+    ax.yaxis.grid(color="#E0E0E0", linestyle="--", alpha=0.8)
+    ax.spines["polar"].set_color("#CCCCCC")
 
     for _, row in df.iterrows():
         vals = [row["n_enc"], row["n_dec"], row["n_tput"], row["n_rel"], row["n_enc"]]

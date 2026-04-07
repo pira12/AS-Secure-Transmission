@@ -69,12 +69,12 @@ FLASH_MAX   = 32_768
 SRAM_MAX    =  2_048
 
 COLORS = {
-    "PLAIN":     "#64748b",
-    "XOR":       "#ef4444",
-    "AES128":    "#3b82f6",
-    "AES128CBC": "#a855f7",
-    "SPECK":     "#22c55e",
-    "CHACHA20":  "#f59e0b",
+    "PLAIN":     "#6B7280",
+    "XOR":       "#DC2626",
+    "AES128":    "#2563EB",
+    "AES128CBC": "#7C3AED",
+    "SPECK":     "#16A34A",
+    "CHACHA20":  "#B45309",
 }
 LABELS = {
     "PLAIN":     "Plaintext",
@@ -164,16 +164,17 @@ def print_report(df):
 def plot_memory(df, outdir):
     os.makedirs(outdir, exist_ok=True)
     plt.rcParams.update({
-        "figure.facecolor": "#0f172a", "axes.facecolor": "#1e293b",
-        "axes.edgecolor": "#334155", "axes.labelcolor": "#e2e8f0",
-        "axes.titlecolor": "#f8fafc", "xtick.color": "#94a3b8",
-        "ytick.color": "#94a3b8", "text.color": "#e2e8f0",
-        "grid.color": "#334155", "grid.linestyle": "--", "grid.alpha": 0.5,
+        "figure.facecolor": "#FFFFFF", "axes.facecolor": "#FAFAFA",
+        "axes.edgecolor": "#CCCCCC", "axes.labelcolor": "#1A1A1A",
+        "axes.titlecolor": "#1A1A1A", "xtick.color": "#5A5A5A",
+        "ytick.color": "#5A5A5A", "text.color": "#1A1A1A",
+        "grid.color": "#E0E0E0", "grid.linestyle": "--", "grid.alpha": 0.8,
+        "legend.facecolor": "#FFFFFF", "legend.edgecolor": "#CCCCCC",
         "font.family": "monospace",
     })
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("#FFFFFF")
 
     labels = [LABELS.get(a, a) for a in df["algo"]]
     clrs   = [COLORS.get(a, "#888") for a in df["algo"]]
@@ -181,7 +182,7 @@ def plot_memory(df, outdir):
 
     # Flash
     b1 = ax1.bar(x, df["flash"], color=clrs, alpha=0.85)
-    ax1.axhline(FLASH_MAX, color="#f8fafc", linestyle="--", linewidth=1.5,
+    ax1.axhline(FLASH_MAX, color="#BC0031", linestyle="--", linewidth=1.5,
                 label=f"Limit ({FLASH_MAX:,} B)")
     ax1.set_xticks(x); ax1.set_xticklabels(labels, fontsize=9, rotation=15, ha="right")
     ax1.set_ylabel("Bytes"); ax1.set_title("Flash Memory Usage", fontsize=12)
@@ -189,7 +190,7 @@ def plot_memory(df, outdir):
     for bar in b1:
         h = bar.get_height()
         ax1.text(bar.get_x()+bar.get_width()/2, h+80, f"{h:,}",
-                 ha="center", fontsize=8, color="#f8fafc")
+                 ha="center", fontsize=8, color="#1A1A1A")
 
     # SRAM
     b2 = ax2.bar(x, df["sram"], color=clrs, alpha=0.85)
@@ -203,10 +204,10 @@ def plot_memory(df, outdir):
     for bar in b2:
         h = bar.get_height()
         ax2.text(bar.get_x()+bar.get_width()/2, h+5, f"{h:,}",
-                 ha="center", fontsize=8, color="#f8fafc")
+                 ha="center", fontsize=8, color="#1A1A1A")
 
     fig.suptitle("ATmega328P Memory Footprint by Algorithm (TX sketch)",
-                 fontsize=13, color="#f8fafc", y=1.02)
+                 fontsize=13, color="#1A1A1A", y=1.02)
     plt.tight_layout()
     path = os.path.join(outdir, "07_memory_footprint.png")
     fig.savefig(path, dpi=150, bbox_inches="tight")
