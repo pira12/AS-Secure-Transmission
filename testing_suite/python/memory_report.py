@@ -30,11 +30,12 @@ HOW TO GET BUILD SIZE VALUES
 MANUAL JSON FORMAT
 ------------------
 [
-  {"algo": "PLAIN",    "flash": 4230,  "sram": 312},
-  {"algo": "XOR",      "flash": 4692,  "sram": 330},
-  {"algo": "AES128",   "flash": 8104,  "sram": 542},
-  {"algo": "SPECK",    "flash": 5680,  "sram": 458},
-  {"algo": "CHACHA20", "flash": 7200,  "sram": 464}
+  {"algo": "PLAIN",     "flash": 4230,  "sram": 312},
+  {"algo": "XOR",       "flash": 4692,  "sram": 330},
+  {"algo": "AES128",    "flash": 8104,  "sram": 542},
+  {"algo": "AES128CBC", "flash": 8300,  "sram": 558},
+  {"algo": "SPECK",     "flash": 5680,  "sram": 458},
+  {"algo": "CHACHA20",  "flash": 7200,  "sram": 464}
 ]
 
 ATmega328P limits: Flash 32,768 B  |  SRAM 2,048 B
@@ -68,18 +69,20 @@ FLASH_MAX   = 32_768
 SRAM_MAX    =  2_048
 
 COLORS = {
-    "PLAIN":    "#64748b",
-    "XOR":      "#ef4444",
-    "AES128":   "#3b82f6",
-    "SPECK":    "#22c55e",
-    "CHACHA20": "#f59e0b",
+    "PLAIN":     "#64748b",
+    "XOR":       "#ef4444",
+    "AES128":    "#3b82f6",
+    "AES128CBC": "#a855f7",
+    "SPECK":     "#22c55e",
+    "CHACHA20":  "#f59e0b",
 }
 LABELS = {
-    "PLAIN":    "Plaintext",
-    "XOR":      "XOR",
-    "AES128":   "AES-128",
-    "SPECK":    "SPECK-64/128",
-    "CHACHA20": "ChaCha20",
+    "PLAIN":     "Plaintext",
+    "XOR":       "XOR",
+    "AES128":    "AES-128 ECB",
+    "AES128CBC": "AES-128 CBC",
+    "SPECK":     "SPECK-64/128",
+    "CHACHA20":  "ChaCha20",
 }
 
 # ---------------------------------------------------------------------------
@@ -121,7 +124,7 @@ def load_from_elf_dir(elf_dir):
 def manual_entry():
     print("\nEnter memory figures (from Arduino IDE verbose build output).\n")
     rows = []
-    for algo in ["PLAIN", "XOR", "AES128", "SPECK", "CHACHA20"]:
+    for algo in ["PLAIN", "XOR", "AES128", "AES128CBC", "SPECK", "CHACHA20"]:
         try:
             flash = int(input(f"  {algo:8s} — Flash bytes used: "))
             sram  = int(input(f"  {algo:8s} — SRAM  bytes used: "))
@@ -238,11 +241,12 @@ def main():
         print("No data source given — using estimated placeholder values.")
         print("Use --elf-dir, --json, or --manual for real data.\n")
         rows = [
-            {"algo": "PLAIN",    "flash": 4_230,  "sram": 312},
-            {"algo": "XOR",      "flash": 4_692,  "sram": 330},
-            {"algo": "AES128",   "flash": 8_104,  "sram": 542},
-            {"algo": "SPECK",    "flash": 5_680,  "sram": 458},
-            {"algo": "CHACHA20", "flash": 7_200,  "sram": 464},
+            {"algo": "PLAIN",     "flash": 4_230,  "sram": 312},
+            {"algo": "XOR",       "flash": 4_692,  "sram": 330},
+            {"algo": "AES128",    "flash": 8_104,  "sram": 542},
+            {"algo": "AES128CBC", "flash": 8_300,  "sram": 558},
+            {"algo": "SPECK",     "flash": 5_680,  "sram": 458},
+            {"algo": "CHACHA20",  "flash": 7_200,  "sram": 464},
         ]
 
     if not rows:

@@ -50,20 +50,22 @@ FIGURES_DIR = os.path.join(RESULTS_DIR, "figures")
 # Constants
 # ---------------------------------------------------------------------------
 
-ALGO_ORDER = ["PLAIN", "XOR", "AES128", "SPECK", "CHACHA20"]
+ALGO_ORDER = ["PLAIN", "XOR", "AES128", "AES128CBC", "SPECK", "CHACHA20"]
 ALGO_LABELS = {
-    "PLAIN":    "Plaintext",
-    "XOR":      "XOR (Static Key)",
-    "AES128":   "AES-128 ECB",
-    "SPECK":    "SPECK-64/128",
-    "CHACHA20": "ChaCha20",
+    "PLAIN":     "Plaintext",
+    "XOR":       "XOR (Static Key)",
+    "AES128":    "AES-128 ECB",
+    "AES128CBC": "AES-128 CBC",
+    "SPECK":     "SPECK-64/128",
+    "CHACHA20":  "ChaCha20",
 }
 COLORS = {
-    "PLAIN":    "#64748b",
-    "XOR":      "#ef4444",
-    "AES128":   "#3b82f6",
-    "SPECK":    "#22c55e",
-    "CHACHA20": "#f59e0b",
+    "PLAIN":     "#64748b",
+    "XOR":       "#ef4444",
+    "AES128":    "#3b82f6",
+    "AES128CBC": "#a855f7",
+    "SPECK":     "#22c55e",
+    "CHACHA20":  "#f59e0b",
 }
 
 DARK = {

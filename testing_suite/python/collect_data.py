@@ -10,6 +10,7 @@ USAGE
   python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo PLAIN
   python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo XOR      --duration 60
   python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo AES128
+  python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo AES128CBC
   python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo SPECK
   python collect_data.py --tx /dev/ttyUSB0 --rx /dev/ttyUSB1 --algo CHACHA20
 
@@ -58,7 +59,7 @@ def parse_args():
     p.add_argument("--duration", default=60,   type=int,
                    help="Test duration in seconds (default: 60)")
     p.add_argument("--algo",     required=True,
-                   choices=["PLAIN", "XOR", "AES128", "SPECK", "CHACHA20"],
+                   choices=["PLAIN", "XOR", "AES128", "AES128CBC", "SPECK", "CHACHA20"],
                    help="Algorithm label — must match sketch output")
     p.add_argument("--outdir",   default=RESULTS_DIR,
                    help="Output directory for CSV files (default: ../results/)")
