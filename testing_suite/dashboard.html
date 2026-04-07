@@ -5,24 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AS-Secure-Transmission — Results Dashboard</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg:      #080d18;
-    --surface: #0f172a;
-    --card:    #131f35;
-    --card2:   #192844;
-    --border:  rgba(255,255,255,0.07);
-    --text:    #e2e8f0;
-    --muted:   #64748b;
-    --dim:     #334155;
-    --plain:   #64748b;
-    --xor:     #ef4444;
-    --aes:     #3b82f6;
-    --speck:   #22c55e;
-    --chacha:  #f59e0b;
-    --font:    'Space Grotesk', system-ui, sans-serif;
-    --mono:    'JetBrains Mono', monospace;
+    --bg:           #F7F7F7;
+    --surface:      #EFEFEF;
+    --card:         #FFFFFF;
+    --card2:        #FAFAFA;
+    --border:       #E2E2E2;
+    --border-strong:#C8C8C8;
+    --text:         #1A1A1A;
+    --muted:        #5A5A5A;
+    --dim:          #999999;
+    --accent:       #BC0031;
+    --accent-dark:  #8A0024;
+    --accent-light: rgba(188,0,49,0.07);
+    --plain:        #6B7280;
+    --xor:          #DC2626;
+    --aes:          #2563EB;
+    --speck:        #16A34A;
+    --chacha:       #B45309;
+    --font:         'IBM Plex Sans', system-ui, sans-serif;
+    --font-display: 'EB Garamond', Georgia, serif;
+    --mono:         'IBM Plex Mono', monospace;
+    --shadow-sm:    0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow:       0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,7 +39,22 @@
     color: var(--text);
     font-family: var(--font);
     min-height: 100vh;
-    padding: 2rem 2rem 4rem;
+  }
+
+  /* ── UvA top accent bar ── */
+  body::before {
+    content: '';
+    display: block;
+    height: 5px;
+    background: var(--accent);
+    width: 100%;
+  }
+
+  /* ── Page wrapper ── */
+  .page-wrapper {
+    padding: 2rem 2.5rem 5rem;
+    max-width: 1400px;
+    margin: 0 auto;
   }
 
   /* ── Header ── */
@@ -43,283 +65,405 @@
     margin-bottom: 2.5rem;
     gap: 1rem;
     flex-wrap: wrap;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--border);
   }
-  header .title-block h1 {
-    font-size: 1.65rem;
+
+  .header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .uva-monogram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: var(--accent);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .uva-monogram span {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #f8fafc;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+    line-height: 1;
   }
-  header .title-block p {
-    font-size: 0.8rem;
+
+  .uva-monogram .uva-sub {
+    font-size: 0.38rem;
+    font-family: var(--font);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin-top: 2px;
+  }
+
+  header .title-block h1 {
+    font-family: var(--font-display);
+    font-size: 1.85rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  header .title-block h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  header .title-block .subtitle {
+    font-size: 0.75rem;
     color: var(--muted);
     font-family: var(--mono);
-    margin-top: 4px;
+    margin-top: 6px;
+    letter-spacing: 0.01em;
   }
+
+  .header-meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .uva-label {
+    font-size: 0.65rem;
+    font-family: var(--font);
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
   .status-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-family: var(--mono);
     padding: 4px 10px;
-    border-radius: 20px;
+    border-radius: 3px;
     border: 1px solid var(--border);
     background: var(--card);
     color: var(--muted);
-    margin-top: 8px;
+    box-shadow: var(--shadow-sm);
   }
-  .status-pill .dot { width:7px; height:7px; border-radius:50%; background:#22c55e; }
-  .status-pill.sample .dot { background: #f59e0b; }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: #16A34A; }
+  .status-pill.sample .dot { background: #D97706; }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 0.62rem;
+    font-family: var(--mono);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
 
   /* ── Algorithm toggles ── */
+  .controls-wrap {
+    margin-bottom: 2rem;
+  }
+
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 2rem;
+    gap: 7px;
     align-items: center;
   }
-  .controls-label {
-    font-size: 0.7rem;
-    font-family: var(--mono);
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-right: 4px;
-  }
+
   .toggle {
     display: flex;
     align-items: center;
     gap: 7px;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 14px;
+    border-radius: 4px;
+    padding: 6px 13px;
     cursor: pointer;
-    font-size: 0.8rem;
-    font-family: var(--mono);
-    color: var(--muted);
+    font-size: 0.78rem;
+    font-family: var(--font);
+    font-weight: 400;
+    color: var(--dim);
     transition: all 0.15s;
     user-select: none;
+    box-shadow: var(--shadow-sm);
   }
-  .toggle.active { color: var(--text); border-color: rgba(255,255,255,0.18); }
-  .toggle .dot { width:8px; height:8px; border-radius:50%; }
+  .toggle.active {
+    color: var(--text);
+    border-color: var(--border-strong);
+    background: var(--card);
+    font-weight: 500;
+  }
+  .toggle .dot { width: 8px; height: 8px; border-radius: 50%; opacity: 0.4; transition: opacity 0.15s; }
+  .toggle.active .dot { opacity: 1; }
 
   /* ── KPI cards ── */
   .kpi-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 2.25rem;
   }
   .kpi {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.1rem 1rem;
+    border-top: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 1.1rem 1rem 1rem;
+    box-shadow: var(--shadow-sm);
     position: relative;
-    overflow: hidden;
-  }
-  .kpi::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.025) 0%, transparent 60%);
-    pointer-events: none;
   }
   .kpi .kpi-label {
-    font-size: 0.65rem;
+    font-size: 0.63rem;
     font-family: var(--mono);
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
     margin-bottom: 8px;
   }
   .kpi .kpi-value {
-    font-size: 1.7rem;
-    font-weight: 700;
-    color: #f8fafc;
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text);
     line-height: 1;
     letter-spacing: -0.02em;
   }
   .kpi .kpi-unit {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--muted);
-    margin-top: 5px;
+    margin-top: 4px;
     font-family: var(--mono);
   }
   .kpi .kpi-winner {
     display: inline-block;
     font-size: 0.62rem;
-    font-family: var(--mono);
+    font-family: var(--font);
     padding: 2px 7px;
-    border-radius: 4px;
-    margin-top: 6px;
-    background: rgba(255,255,255,0.06);
-    color: var(--text);
+    border-radius: 3px;
+    margin-top: 7px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 500;
+    border: 1px solid rgba(188,0,49,0.15);
   }
 
   /* ── Chart grid ── */
   .chart-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
   }
   @media (max-width: 900px) { .chart-grid { grid-template-columns: 1fr; } }
 
   .chart-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.4rem;
+    border-radius: 4px;
+    padding: 1.4rem 1.4rem 1.2rem;
+    box-shadow: var(--shadow-sm);
   }
   .chart-card.wide { grid-column: 1 / -1; }
-  .chart-card.radar-card { display:flex; flex-direction:column; align-items:center; }
+  .chart-card.radar-card { display: flex; flex-direction: column; align-items: center; }
 
   .chart-title {
-    font-size: 0.68rem;
+    font-size: 0.63rem;
     font-family: var(--mono);
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
+  .chart-title .ct-num {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
   .chart-wrap { position: relative; }
 
   .legend-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 10px;
-    font-size: 0.72rem;
-    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-family: var(--font);
     color: var(--muted);
   }
-  .legend-item { display:flex; align-items:center; gap:5px; }
-  .legend-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
   /* ── Full results table ── */
   .table-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 4px;
     padding: 1.4rem;
     overflow-x: auto;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-sm);
   }
-  table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   th {
     font-family: var(--mono);
-    font-size: 0.63rem;
+    font-size: 0.61rem;
     font-weight: 500;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
     padding: 6px 14px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-strong);
     text-align: right;
     white-space: nowrap;
+    background: var(--bg);
   }
-  th:first-child { text-align:left; }
+  th:first-child { text-align: left; }
   td {
     padding: 9px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--border);
     text-align: right;
     font-family: var(--mono);
     font-size: 0.76rem;
-    color: #94a3b8;
+    color: var(--muted);
   }
-  td:first-child { text-align:left; color:var(--text); font-family:var(--font); }
-  tr:last-child td { border-bottom:none; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
+  td:first-child { text-align: left; color: var(--text); font-family: var(--font); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(188,0,49,0.025); }
 
   /* ── Security note ── */
   .security-note {
-    background: rgba(239,68,68,0.07);
-    border: 1px solid rgba(239,68,68,0.22);
-    border-left: 3px solid #ef4444;
-    border-radius: 8px;
+    background: rgba(188,0,49,0.04);
+    border: 1px solid rgba(188,0,49,0.18);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
     padding: 0.9rem 1.1rem;
-    font-size: 0.76rem;
-    color: #fca5a5;
+    font-size: 0.75rem;
+    color: #7A1020;
     margin-bottom: 1.5rem;
-    font-family: var(--mono);
-    line-height: 1.6;
+    font-family: var(--font);
+    line-height: 1.65;
   }
 
   /* ── Footer ── */
   footer {
     text-align: center;
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-family: var(--mono);
     color: var(--dim);
     padding-top: 1.5rem;
     border-top: 1px solid var(--border);
+    line-height: 1.8;
   }
-  footer code { color: var(--muted); }
+  footer code {
+    color: var(--muted);
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+  }
 
   .no-data {
     text-align: center;
     padding: 2rem;
-    font-family: var(--mono);
+    font-family: var(--font);
     font-size: 0.8rem;
-    color: var(--muted);
+    color: var(--dim);
   }
 </style>
 </head>
 <body>
 
+<div class="page-wrapper">
+
 <header>
-  <div class="title-block">
-    <h1>AS-Secure-Transmission</h1>
-    <p>Arduino Nano · ATmega328P @ 16 MHz · RF 433 MHz ASK · 2000 bps · 16-byte messages</p>
+  <div class="header-left">
+    <div class="uva-monogram">
+      <span>UvA</span>
+      <span class="uva-sub">SNE</span>
+    </div>
+    <div class="title-block">
+      <h1>AS-Secure-<em>Transmission</em></h1>
+      <p class="subtitle">Arduino Nano · ATmega328P @ 16 MHz · RF 433 MHz ASK · 2000 bps · 16-byte messages</p>
+    </div>
   </div>
-  <div id="dataStatus"></div>
+  <div class="header-meta">
+    <span class="uva-label">University of Amsterdam</span>
+    <div id="dataStatus"></div>
+  </div>
 </header>
 
-<div class="controls">
-  <span class="controls-label">Show:</span>
-  <div id="toggles"></div>
+<div class="controls-wrap">
+  <div class="section-label">Algorithms</div>
+  <div class="controls" id="toggles"></div>
 </div>
 
+<div class="section-label">Key Metrics</div>
 <div class="kpi-row" id="kpiRow"></div>
 
+<div class="section-label">Charts</div>
 <div class="chart-grid">
   <div class="chart-card">
-    <div class="chart-title">01 — Encrypt / decrypt latency (µs)</div>
+    <div class="chart-title"><span class="ct-num">01 —</span> Encrypt / decrypt latency (µs)</div>
     <div class="legend-row" id="legLat"></div>
     <div class="chart-wrap" style="height:240px"><canvas id="cLatency"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-title">02 — Packet loss &amp; integrity failure (%)</div>
+    <div class="chart-title"><span class="ct-num">02 —</span> Packet loss &amp; integrity failure (%)</div>
     <div class="legend-row" id="legRel"></div>
     <div class="chart-wrap" style="height:240px"><canvas id="cReliability"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-title">03 — Effective throughput vs raw link (bps)</div>
+    <div class="chart-title"><span class="ct-num">03 —</span> Effective throughput vs raw link (bps)</div>
     <div class="chart-wrap" style="height:220px"><canvas id="cThroughput"></canvas></div>
   </div>
   <div class="chart-card">
-    <div class="chart-title">04 — Flash &amp; SRAM footprint (bytes)</div>
+    <div class="chart-title"><span class="ct-num">04 —</span> Flash &amp; SRAM footprint (bytes)</div>
     <div class="chart-wrap" style="height:220px"><canvas id="cMemory"></canvas></div>
   </div>
   <div class="chart-card wide">
-    <div class="chart-title">05 — Encrypt latency over test window (rolling average)</div>
+    <div class="chart-title"><span class="ct-num">05 —</span> Encrypt latency over test window (rolling average)</div>
     <div class="legend-row" id="legTs"></div>
     <div class="chart-wrap" style="height:200px"><canvas id="cTimeseries"></canvas></div>
   </div>
   <div class="chart-card radar-card wide">
-    <div class="chart-title">06 — Performance radar (normalised — higher = better)</div>
+    <div class="chart-title" style="width:100%;"><span class="ct-num">06 —</span> Performance radar (normalised — higher = better)</div>
     <div class="chart-wrap" style="height:340px; width:340px; max-width:100%">
       <canvas id="cRadar"></canvas>
     </div>
   </div>
 </div>
 
+<div class="section-label">Results</div>
 <div class="table-card">
-  <div class="chart-title">Full results table</div>
   <table id="resultsTable"></table>
 </div>
 
@@ -331,8 +475,11 @@
 
 <footer>
   Dashboard loads <code>results/figures/results.json</code> automatically after running
-  <code>python python/analyze.py</code> · AS-Secure-Transmission Testing Suite
+  <code>python python/analyze.py</code><br>
+  AS-Secure-Transmission Testing Suite · University of Amsterdam, SNE
 </footer>
+
+</div><!-- /page-wrapper -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
@@ -342,7 +489,7 @@
 const SAMPLE_DATA = {
   algorithms: [
     {
-      id:"PLAIN", label:"Plaintext (baseline)", color:"#64748b",
+      id:"PLAIN", label:"Plaintext (baseline)", color:"#6B7280",
       enc_mean_us:0, enc_std_us:0, dec_mean_us:0, dec_std_us:0,
       sent:120, recvd:118, loss_pct:1.7, integrity_pct:100,
       eff_tput_bps:1984,
@@ -351,7 +498,7 @@ const SAMPLE_DATA = {
       dec_samples:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     },
     {
-      id:"XOR", label:"XOR (static key)", color:"#ef4444",
+      id:"XOR", label:"XOR (static key)", color:"#DC2626",
       enc_mean_us:3, enc_std_us:0.4, dec_mean_us:3, dec_std_us:0.4,
       sent:120, recvd:117, loss_pct:2.5, integrity_pct:100,
       eff_tput_bps:1983,
@@ -360,7 +507,7 @@ const SAMPLE_DATA = {
       dec_samples:[3,3,2,3,3,3,3,2,3,3,3,3,3,2,3,3,3,3,2,3],
     },
     {
-      id:"AES128", label:"AES-128 ECB", color:"#3b82f6",
+      id:"AES128", label:"AES-128 ECB", color:"#2563EB",
       enc_mean_us:315, enc_std_us:8.2, dec_mean_us:312, dec_std_us:7.8,
       sent:120, recvd:119, loss_pct:0.8, integrity_pct:99.2,
       eff_tput_bps:1958,
@@ -369,7 +516,7 @@ const SAMPLE_DATA = {
       dec_samples:[310,315,312,309,318,311,313,308,312,314,311,312,311,316,312,313,310,315,311,312],
     },
     {
-      id:"SPECK", label:"SPECK-64/128", color:"#22c55e",
+      id:"SPECK", label:"SPECK-64/128", color:"#16A34A",
       enc_mean_us:58, enc_std_us:2.1, dec_mean_us:60, dec_std_us:2.3,
       sent:120, recvd:118, loss_pct:1.7, integrity_pct:100,
       eff_tput_bps:1976,
@@ -378,7 +525,7 @@ const SAMPLE_DATA = {
       dec_samples:[60,59,62,60,61,59,60,62,60,59,61,60,62,59,60,61,60,59,62,60],
     },
     {
-      id:"CHACHA20", label:"ChaCha20", color:"#f59e0b",
+      id:"CHACHA20", label:"ChaCha20", color:"#B45309",
       enc_mean_us:198, enc_std_us:5.1, dec_mean_us:197, dec_std_us:5.0,
       sent:120, recvd:118, loss_pct:1.7, integrity_pct:99.6,
       eff_tput_bps:1969,
@@ -492,16 +639,29 @@ const BASE_OPTS = {
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    tooltip: { mode: 'index', intersect: false,
-      backgroundColor: '#192844', borderColor: 'rgba(255,255,255,0.1)',
-      borderWidth: 1, titleColor: '#f8fafc', bodyColor: '#94a3b8',
-      padding: 10, cornerRadius: 6 }
+    tooltip: {
+      mode: 'index', intersect: false,
+      backgroundColor: '#FFFFFF',
+      borderColor: '#E2E2E2',
+      borderWidth: 1,
+      titleColor: '#1A1A1A',
+      bodyColor: '#5A5A5A',
+      padding: 10,
+      cornerRadius: 4,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    }
   },
   scales: {
-    x: { grid: { color: 'rgba(255,255,255,0.04)' },
-         ticks: { color: '#64748b', font:{ family:"'JetBrains Mono'", size:10 }}},
-    y: { grid: { color: 'rgba(255,255,255,0.04)' },
-         ticks: { color: '#64748b', font:{ family:"'JetBrains Mono'", size:10 }}},
+    x: {
+      grid: { color: 'rgba(0,0,0,0.05)' },
+      ticks: { color: '#888888', font: { family: "'IBM Plex Mono'", size: 10 } },
+      border: { color: '#E2E2E2' }
+    },
+    y: {
+      grid: { color: 'rgba(0,0,0,0.05)' },
+      ticks: { color: '#888888', font: { family: "'IBM Plex Mono'", size: 10 } },
+      border: { color: '#E2E2E2' }
+    },
   }
 };
 
@@ -539,7 +699,7 @@ function drawLatency() {
         tooltip:{ ...BASE_OPTS.plugins.tooltip,
           callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} µs` }}},
       scales:{ ...BASE_OPTS.scales,
-        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#64748b'}}}}
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#888888',font:{family:"'IBM Plex Mono'",size:10}}}}}
   });
 }
 
@@ -568,7 +728,7 @@ function drawReliability() {
         tooltip:{ ...BASE_OPTS.plugins.tooltip,
           callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y!=null?ctx.parsed.y.toFixed(2):'n/a'}%` }}},
       scales:{ ...BASE_OPTS.scales,
-        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'%',color:'#64748b'}}}}
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'%',color:'#888888',font:{family:"'IBM Plex Mono'",size:10}}}}}
   });
 }
 
@@ -593,7 +753,7 @@ function drawThroughput() {
     options: { ...BASE_OPTS,
       scales:{ ...BASE_OPTS.scales,
         y:{ ...BASE_OPTS.scales.y, min:1700,
-            title:{display:true,text:'bps',color:'#64748b'}}}}
+            title:{display:true,text:'bps',color:'#888888',font:{family:"'IBM Plex Mono'",size:10}}}}}
   });
 }
 
@@ -666,7 +826,7 @@ function drawTimeseries() {
         tooltip:{ ...BASE_OPTS.plugins.tooltip,
           callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} µs` }}},
       scales:{ ...BASE_OPTS.scales,
-        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#64748b'}}}}
+        y:{ ...BASE_OPTS.scales.y, title:{display:true,text:'µs',color:'#888888',font:{family:"'IBM Plex Mono'",size:10}}}}}
   });
 }
 
@@ -705,7 +865,7 @@ function drawRadar() {
         label: a.label,
         data: [nEnc[i], nDec[i], nTput[i], nRel[i]],
         borderColor: a.color,
-        backgroundColor: a.color+'1a',
+        backgroundColor: a.color+'18',
         borderWidth: 2,
         pointBackgroundColor: a.color,
         pointRadius: 3,
@@ -715,19 +875,24 @@ function drawRadar() {
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{ display:true, position:'bottom',
-          labels:{ color:'#94a3b8', font:{family:"'JetBrains Mono'",size:11},
+          labels:{ color:'#5A5A5A', font:{family:"'IBM Plex Sans'",size:11},
                    boxWidth:10, padding:16 }},
-        tooltip:{ backgroundColor:'#192844', borderColor:'rgba(255,255,255,0.1)',
-          borderWidth:1, titleColor:'#f8fafc', bodyColor:'#94a3b8',
-          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${(ctx.parsed.r*100).toFixed(0)}%` }}
+        tooltip:{
+          backgroundColor:'#FFFFFF',
+          borderColor:'#E2E2E2',
+          borderWidth:1,
+          titleColor:'#1A1A1A',
+          bodyColor:'#5A5A5A',
+          callbacks:{ label: ctx=>`${ctx.dataset.label}: ${(ctx.parsed.r*100).toFixed(0)}%` }
+        }
       },
       scales:{
         r:{
           min:0, max:1,
-          backgroundColor:'#0f172a',
-          grid:{ color:'rgba(255,255,255,0.07)' },
-          angleLines:{ color:'rgba(255,255,255,0.07)' },
-          pointLabels:{ color:'#cbd5e1', font:{family:"'Space Grotesk'",size:12} },
+          backgroundColor:'#FAFAFA',
+          grid:{ color:'rgba(0,0,0,0.08)' },
+          angleLines:{ color:'rgba(0,0,0,0.08)' },
+          pointLabels:{ color:'#333333', font:{family:"'IBM Plex Sans'",size:12,weight:'500'} },
           ticks:{ display:false }
         }
       }
